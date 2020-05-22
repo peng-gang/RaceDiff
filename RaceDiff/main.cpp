@@ -72,6 +72,8 @@ int main(int argc, char ** argv) {
         idxSymbol = distance(vsHeader.begin(), itSymbol);
     }
     
+    cout << "Start" <<endl;
+    
     if(idxRace.size() == 1){
         fout<<"Chr\tPos\tSymbol";
         fout<<"\t"<<cmLine["-r"][0]<<"-Other"<<endl;
@@ -88,6 +90,94 @@ int main(int argc, char ** argv) {
         int numSigNegativeTotal = 0;
         int numTotalTotal = 0;
         
+        while(!fin.eof()){
+            string fline;
+            getline(fin, fline);
+            
+            if(fline.size() < 2){
+                break;
+            }
+            
+            vector<string> vsLine = split(fline, "\t");
+            if(vsLine[idxSymbol]==""){
+                continue;
+            }
+            
+            if(vsLine[idxSymbol] != currentGene){
+                if(currentGene!=""){
+                    fout << currentChr;
+                    if(pos.size() % 2 == 0){
+                        int posTmp = (int)(pos[pos.size()/2] + pos[pos.size()/2-1])/2;
+                        fout << "\t" << posTmp << "\t" << currentGene;
+                    } else {
+                        int posTmp = pos[pos.size()/2];
+                        fout << "\t" << posTmp << "\t" << currentGene;
+                    }
+                    
+                    fout << "\t" << numSigPositive << "|" << numSigNegative << "|" << numTotal << endl;
+                }
+                currentGene = vsLine[idxSymbol];
+                currentChr = vsLine[0];
+                pos.clear();
+                numSigPositive = 0;
+                numSigNegative = 0;
+                numTotal = 0;
+            }
+            
+            
+            pos.push_back(stoi(vsLine[1]));
+            // There is a bug here
+            // I assume race info from 7 to 11 // 6-10
+            if(vsLine[idxRace[0]] == "NA"){
+                continue;
+            }
+            
+            double maf1 = stof(vsLine[idxRace[0]]);
+            
+            double maf2 = 0;
+            int numOther = 0;
+            for(size_t i=6; i<11; i++){
+                if(i != idxRace[0]){
+                    if(vsLine[i] != "NA"){
+                        maf2 += stof(vsLine[i]);
+                        numOther++;
+                    }
+                }
+            }
+            
+            if(numOther==0){
+                continue;
+            }
+            
+            maf2 = maf2/numOther;
+            
+            if(fabs(maf1-maf2) > cutoff){
+                if(maf1 > maf2){
+                    numSigPositive++;
+                    numSigPositiveTotal++;
+                } else {
+                    numSigNegative++;
+                    numSigNegativeTotal++;
+                }
+            }
+            numTotal++;
+            numTotalTotal++;
+        }
+        
+        //output last record
+        fout << currentChr;
+        if(pos.size() % 2 == 0){
+            int posTmp = (int)(pos[pos.size()/2] + pos[pos.size()/2-1])/2;
+            fout << "\t" << posTmp << "\t" << currentGene;
+        } else {
+            int posTmp = pos[pos.size()/2];
+            fout << "\t" << posTmp << "\t" << currentGene;
+        }
+        
+        fout << "\t" << numSigPositive << "|" << numSigNegative << "|" << numTotal << endl;
+        
+        //output total
+        fout << "Total\t0\tTotal\t" << numSigPositiveTotal << "|" << numSigNegativeTotal << "|" << numTotalTotal << endl;
         
     } else {
         //fout header of output file
@@ -199,6 +289,8 @@ int main(int argc, char ** argv) {
     
     fin.close();
     fout.close();
+    
+    cout << "Finished!" << endl;
     
     return 0;
 }
