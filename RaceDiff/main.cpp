@@ -30,6 +30,9 @@ int main(int argc, char ** argv) {
     double cutoff = 0.05;
     
     map<string, vector<string> > cmLine = parseCMLine(argc, argv, allOptions, mustOptions);
+    if(cmLine.size()==0){
+        return -1;
+    }
     
     string fnameIn = cmLine["-i"][0];
     string fnameOut = cmLine["-o"][0];
@@ -101,7 +104,7 @@ int main(int argc, char ** argv) {
         // I assume race info from 7 to 11 // 6-10
         int numCompare = 5;
         fout<<"Chr\tPos\tSymbol";
-        for(size_t i=0; i<11; i++){
+        for(size_t i=6; i<11; i++){
             fout << "\t" << vsHeader[i] << "-Other";
         }
         fout << endl;
@@ -320,11 +323,11 @@ int main(int argc, char ** argv) {
         
     } else {
         //fout header of output file
-        size_t numCompare = (cmLine["-r"].size()-1) * (cmLine["-r"].size()) / 2;
+        size_t numCompare = (idxRace.size()-1) * (idxRace.size()) / 2;
         fout<<"Chr\tPos\tSymbol";
-        for(size_t i=0; i < (cmLine["-r"].size()-1); i++){
-            for(size_t j=(i+1); j<cmLine["-r"].size(); j++){
-                fout<<"\t"<<cmLine["-r"][i]<<"-"<<cmLine["-r"][j];
+        for(size_t i=0; i<(idxRace.size()-1); i++){
+            for(size_t j=(i+1); j<idxRace.size(); j++){
+                fout<<"\t"<<vsHeader[idxRace[i]]<<"-"<<vsHeader[idxRace[j]];
             }
         }
         fout<<endl;
@@ -383,7 +386,7 @@ int main(int argc, char ** argv) {
             int idx = 0;
             for(size_t i=0; i<(idxRace.size()-1); i++){
                 for(size_t j=(i+1); j<idxRace.size(); j++){
-                    if(vsLine[idxRace[i]] != "NA" && vsLine[idxRace[i]] != "NA"){
+                    if(vsLine[idxRace[i]] != "NA" && vsLine[idxRace[j]] != "NA"){
                         double maf1 = stof(vsLine[idxRace[i]]);
                         double maf2 = stof(vsLine[idxRace[j]]);
                         if(fabs(maf1-maf2) > cutoff){
