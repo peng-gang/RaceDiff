@@ -37,6 +37,10 @@ int main(int argc, char ** argv) {
     string fnameIn = cmLine["-i"][0];
     string fnameOut = cmLine["-o"][0];
     
+    if(cmLine.find("-c") != cmLine.end()){
+        cutoff = stof(cmLine["-c"][0]);
+    }
+    
     ifstream fin(fnameIn.c_str());
     if(!fin.is_open()){
         cout << "Cannot open file " << fnameIn << ". Please check the input file name." << endl;
